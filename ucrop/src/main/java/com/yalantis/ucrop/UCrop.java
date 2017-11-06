@@ -18,6 +18,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.yalantis.ucrop.model.AspectRatio;
+import com.yalantis.ucrop.model.ImageState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +38,7 @@ public class UCrop {
 
     public static final String EXTRA_INPUT_URI = EXTRA_PREFIX + ".InputUri";
     public static final String EXTRA_OUTPUT_URI = EXTRA_PREFIX + ".OutputUri";
+    public static final String EXTRA_OUTPUT_IMAGE_STATE = EXTRA_PREFIX + ".ImageState";
     public static final String EXTRA_OUTPUT_CROP_ASPECT_RATIO = EXTRA_PREFIX + ".CropAspectRatio";
     public static final String EXTRA_OUTPUT_IMAGE_WIDTH = EXTRA_PREFIX + ".ImageWidth";
     public static final String EXTRA_OUTPUT_IMAGE_HEIGHT = EXTRA_PREFIX + ".ImageHeight";
@@ -187,6 +189,10 @@ public class UCrop {
     @Nullable
     public static Uri getOutput(@NonNull Intent intent) {
         return intent.getParcelableExtra(EXTRA_OUTPUT_URI);
+    }
+
+    public static ImageState getOutputImageState(@NonNull Intent intent) {
+        return intent.getParcelableExtra(EXTRA_OUTPUT_IMAGE_STATE);
     }
 
     /**

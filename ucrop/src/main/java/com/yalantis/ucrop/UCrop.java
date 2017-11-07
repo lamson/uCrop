@@ -16,9 +16,16 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
+import com.yalantis.ucrop.callback.BitmapCropCallback;
+import com.yalantis.ucrop.callback.BitmapLoadCallback;
 import com.yalantis.ucrop.model.AspectRatio;
+import com.yalantis.ucrop.model.CropParameters;
+import com.yalantis.ucrop.model.ExifInfo;
 import com.yalantis.ucrop.model.ImageState;
+import com.yalantis.ucrop.task.BitmapCropTask;
+import com.yalantis.ucrop.util.BitmapLoadUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +37,8 @@ import java.util.Locale;
  * Builder class to ease Intent setup.
  */
 public class UCrop {
+
+    private static final String TAG = UCrop.class.getName();
 
     public static final int REQUEST_CROP = 69;
     public static final int RESULT_ERROR = 96;
@@ -55,6 +64,9 @@ public class UCrop {
     private Intent mCropIntent;
     private Bundle mCropOptionsBundle;
 
+    private Uri mSource;
+    private Uri mDestination;
+
     /**
      * This method creates new Intent builder and sets both source and destination image URIs.
      *
@@ -70,6 +82,9 @@ public class UCrop {
         mCropOptionsBundle = new Bundle();
         mCropOptionsBundle.putParcelable(EXTRA_INPUT_URI, source);
         mCropOptionsBundle.putParcelable(EXTRA_OUTPUT_URI, destination);
+
+        mSource = source;
+        mDestination = destination;
     }
 
     /**
@@ -110,6 +125,56 @@ public class UCrop {
     public UCrop withOptions(@NonNull Options options) {
         mCropOptionsBundle.putAll(options.getOptionBundle());
         return this;
+    }
+
+    /**
+     * Executes crop image task, bypassing UCropActivity.
+     */
+    public void crop(
+        final Context context,
+        final ImageState imageState,
+        int maxBitmapSize,
+        final int compressQuality,
+        @NonNull final Bitmap.CompressFormat compressFormat,
+        @Nullable final BitmapCropCallback cropCallback) {
+
+        crop(context, imageState, mSource, mDestination,
+            maxBitmapSize, compressQuality, compressFormat, cropCallback);
+    }
+
+    public static void crop(
+        Context context,
+        final ImageState imageState,
+        @NonNull Uri imageUri,
+        @Nullable Uri outputUri,
+        int maxBitmapSize,
+        final int compressQuality,
+        @NonNull final Bitmap.CompressFormat compressFormat,
+        @Nullable final BitmapCropCallback cropCallback) {
+
+        if (maxBitmapSize <= 0) {
+            maxBitmapSize = BitmapLoadUtils.calculateMaxBitmapSize(context);
+        }
+
+        BitmapLoadUtils.decodeBitmapInBackground(context, imageUri, outputUri, maxBitmapSize, maxBitmapSize,
+            new BitmapLoadCallback() {
+
+                @Override
+                public void onBitmapLoaded(@NonNull Bitmap bitmap, @NonNull ExifInfo exifInfo, @NonNull String imageInputPath, @Nullable String imageOutputPath) {
+                    final CropParameters cropParameters = new CropParameters(
+                        0, 0,
+                        compressFormat, compressQuality,
+                        imageInputPath, imageOutputPath, exifInfo);
+
+                    new BitmapCropTask(bitmap, imageState, cropParameters, cropCallback).execute();
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception bitmapWorkerException) {
+                    Log.e(TAG, "BitmapLoadUtils.decodeBitmapInBackground.onFailure: ", bitmapWorkerException);
+                }
+            });
+
     }
 
     /**

@@ -298,10 +298,16 @@ public class UCropActivity extends AppCompatActivity {
             mLayoutRotate = (ViewGroup) findViewById(R.id.layout_rotate_wheel);
             mLayoutScale = (ViewGroup) findViewById(R.id.layout_scale_wheel);
 
-            setupAspectRatioWidget(intent);
+            // no need to setup this widget for Printopus
+            // setupAspectRatioWidget(intent);
             setupRotateWidget();
             setupScaleWidget();
             setupStatesWrapper();
+
+            // hide these views for Printopus
+            mLayoutAspectRatio.setVisibility(View.GONE);
+            mWrapperStateAspectRatio.setVisibility(View.GONE);
+            findViewById(R.id.rotate_scroll_wheel).setVisibility(View.GONE);
         }
     }
 
